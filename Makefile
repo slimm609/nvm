@@ -15,7 +15,7 @@ ifeq ($(findstring /,$(URCHIN)),) # urchin path was NOT passed in.
 	UTIL_CHECK := $(or $(shell PATH="$(PATH)" which $(UTILS) >/dev/null && echo 'ok'),$(error Did you forget to run `npm install` after cloning the repo? At least one of the required supporting utilities not found: $(UTILS)))
 endif
 	# The files that need updating when incrementing the version number.
-VERSIONED_FILES := nvm.sh install.sh README.markdown package.json
+VERSIONED_FILES := nvm.sh install.sh README.md package.json
 	# Define all shells to test with. Can be overridden with `make SHELLS=... <target>`.
 SHELLS := sh bash dash zsh # ksh (#574)
 	# Generate 'test-<shell>' target names from specified shells.
@@ -55,6 +55,14 @@ ifndef TAG
 	$(error Please invoke with `make TAG=<new-version> release`, where <new-version> is either an increment specifier (patch, minor, major, prepatch, preminor, premajor, prerelease), or an explicit major.minor.patch version number)
 endif
 
+# Ensures there are version tags in repository
+.PHONY: _ensure-current-version
+
+_ensure-current-version:
+ifeq ($(shell git tag),$(printf ''))
+	@git fetch --tags
+endif
+
 # Ensures that the git workspace is clean.
 .PHONY: _ensure-clean
 _ensure-clean:
@@ -62,7 +70,7 @@ _ensure-clean:
 
 # Makes a release; invoke with `make TAG=<versionOrIncrementSpec> release`.
 .PHONY: release
-release: _ensure-tag _ensure-clean
+release: _ensure-tag _ensure-clean _ensure-current-version
 	@old_ver=`git describe --abbrev=0 --tags --match 'v[0-9]*.[0-9]*.[0-9]*'` || { echo "Failed to determine current version." >&2; exit 1; }; old_ver=$${old_ver#v}; \
 	 new_ver=`echo "$(TAG)" | sed 's/^v//'`; new_ver=$${new_ver:-patch}; \
 	 if printf "$$new_ver" | grep -q '^[0-9]'; then \

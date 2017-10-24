@@ -2,6 +2,10 @@
 
 # bash completion for Node Version Manager (NVM)
 
+if ! nvm &> /dev/null; then
+    return
+fi
+
 __nvm_generate_completion()
 {
   declare current_word
@@ -21,8 +25,9 @@ __nvm_commands ()
     help install uninstall use run exec
     alias unalias reinstall-packages
     current list ls list-remote ls-remote
-    clear-cache deactivate unload
-    version which'
+    install-latest-npm
+    cache deactivate unload
+    version version-remote which'
 
     if [ ${#COMP_WORDS[@]} == 4 ]; then
 
@@ -88,5 +93,5 @@ if [[ -n ${ZSH_VERSION-} ]]; then
   autoload -U +X bashcompinit && bashcompinit
 fi
 
-complete -o default -o nospace -F __nvm nvm
+complete -o default -F __nvm nvm
 
